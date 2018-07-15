@@ -49,7 +49,7 @@ func (r *bufferedStartReader) Read(p []byte) (n int, err error) {
 }
 
 func (r *bufferedStartReader) Seek(n int) error {
-	if r.offset == r.available {
+	if r.available > 0 && r.offset == r.available {
 		return fmt.Errorf("Buffer empty, seeking disallowed")
 	}
 	r.offset = n
