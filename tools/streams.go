@@ -56,13 +56,13 @@ func (r *bufferedStartReader) Seek(n int) error {
 	return nil
 }
 
-func ReadLengthPrefixedCollectionIgnoringIncompleteBeginning(r io.Reader, maximum int, f message.UnmarshalFunc) (pbs collection.MessageCollection, err error) {
+func ReadLengthPrefixedCollectionIgnoringIncompleteBeginning(r io.Reader, maximum int, f message.UnmarshalFunc) (pbs collection.MessageCollection, junk int, err error) {
 	br := newBufferedStartReader(r, maximum)
 
 	for offset := 0; offset < maximum; offset += 1 {
 		err := br.Seek(offset)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		items, err := stream.ReadLengthPrefixedCollection(br, f)
@@ -71,9 +71,9 @@ func ReadLengthPrefixedCollectionIgnoringIncompleteBeginning(r io.Reader, maximu
 		}
 
 		if items != nil {
-			return items, nil
+			return items, offset, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Too much garbage at beginning of length prefixed stream")
+	return nil, 0, fmt.Errorf("Too much garbage at beginning of length prefixed stream")
 }
